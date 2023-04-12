@@ -1,50 +1,52 @@
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View, Button } from "react-native";
+import React, { useState, useEffect } from "react";
+import { Text, View, StyleSheet, Button } from "react-native";
 import { BarCodeScanner } from "expo-barcode-scanner";
-import { useEffect, useState } from "react";
 
 export default function App() {
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
-  const [text, setText] = useState("Pas encore scanné");
+  const [text, setText] = useState("Not yet scanned");
 
-  const askForPermission = () => {
+  const askForCameraPermission = () => {
     (async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
+      setHasPermission(status === "granted");
     })();
   };
 
-  // Demander la permission pour utiliser la caméra
+  // Request Camera Permission
   useEffect(() => {
-    askForPermission();
+    askForCameraPermission();
   }, []);
 
-  // Ce qu'il se passe quand on scanne le QR Code
+  // What happens when we scan the bar code
   const handleBarCodeScanned = ({ type, data }) => {
     setScanned(true);
     setText(data);
     console.log("Type: " + type + "\nData: " + data);
   };
 
-  // Vérifier les permissions et renvoyer l'écran
+  // Check permissions and return the screens
   if (hasPermission === null) {
     return (
       <View style={styles.container}>
-        <Text>Demande d'autorisation de caméra</Text>
+        <Text>Requesting for camera permission</Text>
       </View>
     );
   }
-
   if (hasPermission === false) {
     return (
       <View style={styles.container}>
-        <Text>Accès refusé à la caméra</Text>
-        <Button title={"Allow Camera"} onPress={() => askForPermission()} />
+        <Text style={{ margin: 10 }}>No access to camera</Text>
+        <Button
+          title={"Allow Camera"}
+          onPress={() => askForCameraPermission()}
+        />
       </View>
     );
   }
 
-  /* Retourner la vue */
+  // Return the View
   return (
     <View style={styles.container}>
       <View style={styles.barcodebox}>
@@ -57,7 +59,7 @@ export default function App() {
 
       {scanned && (
         <Button
-          title="Scan again ?"
+          title={"Scan again?"}
           onPress={() => setScanned(false)}
           color="tomato"
         />
@@ -73,7 +75,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
+  maintext: {
+    fontSize: 16,
+    margin: 20,
+  },
   barcodebox: {
     alignItems: "center",
     justifyContent: "center",
@@ -82,10 +87,5 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderRadius: 30,
     backgroundColor: "tomato",
-  },
-
-  maintext: {
-    fontSize: 16,
-    margin: 20,
   },
 });
